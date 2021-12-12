@@ -9,7 +9,7 @@ async def start(message: types.Message):
     if(not BotDB.user_exists(message.from_user.id)):
         BotDB.add_user(message.from_user.id)
 
-    await message.bot.send_message(message.from_user.id, "Приветствую тебя, я бот управления финансами, помогу когнтролировать доход/расход твоих средств.")
+    await message.bot.send_message(message.from_user.id, "Приветствую тебя, я бот управления финансами, помогу контролировать доход/расход твоих средств.\n Список команд: \n /e *сумма* - введение дохода. \n /s *сумма* - введение расхода. \n /h *день, месяц, год* - история операций за определенный промежуток времени.")
 
 @dp.message_handler(commands = ("spent", "earned", "s", "e"), commands_prefix = "/!")
 async def start(message: types.Message):
@@ -62,10 +62,19 @@ async def start(message: types.Message):
     if(len(records)):
         answer = f"🕘 История операций за {within_als[within][-1]}\n\n"
 
+        ea = 0
+        sp = 0
+
         for r in records:
             answer += "<b>" + ("➖ Расход" if not r[2] else "➕ Доход") + "</b>"
             answer += f" - {r[3]}"
             answer += f" <i>({r[4]})</i>\n"
+            if r[2] == 1:
+                ea += r[3]
+            if r[2] == 0:
+                sp += r[3]
+            
+        answer += f"<i>Итог за {within_als[within][-1]}: {ea-sp}</i>"
 
         await message.reply(answer)
     else:
