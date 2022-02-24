@@ -252,3 +252,41 @@ async def help(message: types.Message):
     cmd_variants = ('/help', '/hl', '!help', '!hl')
     answer = f"Список всех команд:\n /e *сумма* - запись дохода\n/s *сумма* - запись расхода\n/h *день, месяц, год* - история операций\n/vl *сумма;валюта из которой переводить;валюта в которую переводить* - перевод валюты (например: 1;USD;RUB)\n(Расчет валюты производится исходя из курса валют на момент 20.02.2022, доступные валюты: RUB, BYN, KZT, USD, EUR, UAH)"
     await message.bot.send_message(message.from_user.id, answer)
+
+@dp.message_handler(commands = ("cr", "credit"), commands_prefix = "/!")
+async def help(message: types.Message):
+    cmd_variants = ('/credit', '/cr', '!credit', '!cr')
+    text = message.text
+    s = text[text.find(" ")+1:text.find(";")] # сумма креита
+    r = text[text.find(";")+1:text.rfind(";")] # процентная ставка
+    n = text[text.rfind(";")+1:len(text)] # кол-во месяцев
+    s = int(s)
+    r = float(r)
+    n = int(n)
+    r = r/100
+    e = s*((r*((1+r)**n))/(((1+r)**n)-1)) #формула расчета ещемесячного платежа
+    summ = e*n
+    if n<12:
+        answer = f"Минимальное количество месяцев - 12"
+        await message.bot.send_message(message.from_user.id, answer)
+    elif n>=12:
+        answer = f"Начальная сумма: {s}\nПроцентная ставка: {r*100:.1f}%\nКол-во месяцев: {n}\nЕжемесячный платеж: {e:.1f}\nОбщая выплата: {summ:.1f}"
+        await message.bot.send_message(message.from_user.id, answer)
+    else:
+        answer = f"Ошибка расчета"
+        await message.bot.send_message(message.from_user.id, answer)
+
+@dp.message_handler(commands = ("dp", "deposit"), commands_prefix = "/!")
+async def help(message: types.Message):
+    cmd_variants = ('/deposit', '/dp', '!deposit', '!dp')
+    text = message.text
+    p = text[text.find(" ")+1:text.find(";")] #сумма депозита
+    n = text[text.find(";")+1:text.rfind(";")] #процентная ставка
+    t = text[text.rfind(";")+1:len(text)]  #количество дней
+    p = int(p)
+    n = float(n)
+    t = int(t)
+    n = n/100
+    summ = p*((1+n/365)**t)
+    answer = f"Сумма депозита: {p}\nПроцентная ставка: {n*100:.1f}%\nКол-во дней: {t}\nОкончательная сумма: {summ:.1f}\nДоход: {summ-p:.1f}"
+    await message.bot.send_message(message.from_user.id, answer)
